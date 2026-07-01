@@ -20,12 +20,12 @@ This repository has since been refactored to be a standalone, exportable project
 ├── res/                 # output of ./convert (created automatically)
 ├── out/                 # compiled .class files (created by `make`)
 └── src/qoi/
-    ├── ArrayUtils.java      # array/byte utilities (mine)
-    ├── QOIEncoder.java      # QOI encoder (mine)
-    ├── QOIDecoder.java      # QOI decoder (mine)
+    ├── ArrayUtils.java      # array/byte utilities
+    ├── QOIEncoder.java      # QOI encoder
+    ├── QOIDecoder.java      # QOI decoder
     ├── Main.java            # CLI entry point
-    ├── Helper.java          # file/image I/O (provided by the course)
-    └── QOISpecification.java # QOI constants & hash function (provided by the course)
+    ├── Helper.java          # file/image I/O
+    └── QOISpecification.java # QOI constants & hash function
 ```
 
 ## How QOI works
@@ -139,7 +139,7 @@ QOI is not a strict improvement over PNG: PNG's compression (DEFLATE) is more so
 
 **Why it loses bytes:** the translucent, glossy dice create a lot of fine detail — highlights, soft shadows, and semi-transparent edges where the alpha channel itself keeps changing from one pixel to the next. All of QOI's cheap encodings assume the alpha channel stays the same as the previous pixel, so every one of those transitions forces a fallback to the full 5-byte `QOI_OP_RGBA` block instead. PNG's more elaborate compression copes better with that kind of detail.
 
-## What I wrote
+## Implementation
 
 The course provided a skeleton (method signatures, plus utility code out of scope for the course); the assignment was to implement the body of these methods across 3 files.
 
