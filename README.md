@@ -1,5 +1,6 @@
 # QOI Image Codec
 
+[![Build & Test](https://github.com/natamun/qoi-codec/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/natamun/qoi-codec/actions/workflows/build-and-test.yml)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Java](https://img.shields.io/badge/language-Java-orange.svg)
 
