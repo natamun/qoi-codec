@@ -1,0 +1,33 @@
+name: Build & Test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Build
+        run: make
+
+      - name: Encode beach.png and compare with reference beach.qoi
+        run: |
+          ./convert references/beach.png
+          cmp res/beach.qoi references/beach.qoi
+
+      - name: Decode beach.qoi, re-encode it, and compare with reference beach.qoi
+        run: |
+          ./convert references/beach.qoi
+          ./convert res/beach.png
+          cmp res/beach.qoi references/beach.qoi
