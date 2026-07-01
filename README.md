@@ -1,5 +1,8 @@
 # QOI Image Codec
 
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Java](https://img.shields.io/badge/language-Java-orange.svg)
+
 An encoder/decoder for the [**QOI** ("Quite OK Image")](https://qoiformat.org/) format, a simple and fast lossless image compression format.
 
 Built in **2022** for the **CS-107** course (EPFL), my first programming project. The assignment required implementing a full encoder and decoder for this format on top of a provided skeleton, working at the byte level (bitwise operators, modular arithmetic, hash tables). It was designed as a group project, but I completed it entirely on my own.
@@ -181,3 +184,7 @@ The course provided a skeleton (method signatures, plus utility code out of scop
 
 - The [QOI ("Quite OK Image") format](https://qoiformat.org/) was created by Dominic Szablewski.
 - The assignment skeleton and specification (`consignes.pdf`) are by Hamza Remmal, Barbara Jobstmann and Jamila Sam, for EPFL's CS-107 course.
+
+---
+
+Made with ❤️ by [natamun](https://github.com/natamun)
