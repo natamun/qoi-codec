@@ -31,7 +31,7 @@ This repository has since been refactored to be a standalone, exportable project
 
 ## How QOI works
 
-QOI is lossless: decoding a `.qoi` file gives back the exact same pixels as the original image, but the file is much smaller than storing every pixel explicitly. The core idea is that in most real images, a pixel is very often identical to, or very close to, the pixel right before it — so instead of storing every pixel in full, most of them can be described much more cheaply relative to their neighbor.
+QOI is lossless: decoding a `.qoi` file gives back the exact same pixels as the original image, but the file is much smaller than storing every pixel explicitly. The core idea is that in most real images, a pixel is very often identical to, or very close to, the pixel right before it, so instead of storing every pixel in full, most of them can be described much more cheaply relative to their neighbor.
 
 A `.qoi` file has 3 parts:
 
@@ -54,16 +54,16 @@ Instead of storing every pixel as 4 raw bytes (R, G, B, A), the encoder walks th
 | `QOI_OP_RGB` | `11111110` | the full pixel, alpha unchanged from the previous one | 4 bytes |
 | `QOI_OP_RGBA` | `11111111` | the full pixel, including a new alpha value | 5 bytes |
 
-The encoder always tries them in that order — run, then index, then diff, then luma, then RGB, then RGBA — roughly from cheapest to most expensive: a long run of identical pixels costs almost nothing, while a pixel unlike anything seen before needs the full 4 or 5 bytes.
+The encoder always tries them in that order: run, then index, then diff, then luma, then RGB, then RGBA, roughly from cheapest to most expensive: a long run of identical pixels costs almost nothing, while a pixel unlike anything seen before needs the full 4 or 5 bytes.
 
 Concrete examples of each, as produced by this codebase:
 
-- `QOI_OP_RUN` — the previous pixel repeats 41 more times in a row → encoded as the single byte `0b11101000` (`0xE8`): tag `11`, count `101000`
-- `QOI_OP_INDEX` — the current pixel matches slot 43 of the hash table → encoded as the single byte `0b00101011` (`0x2B`): tag `00`, index `101011`
-- `QOI_OP_DIFF` — R/G/B changed by `(-2, -1, 0)` compared to the previous pixel → encoded as the single byte `0b01000110` (`0x46`): tag `01`, then `dr dg db`
-- `QOI_OP_LUMA` — R/G/B changed by `(+19, +27, +20)` compared to the previous pixel → encoded as the 2 bytes `0b10111011 0b00000001` (`0xBB 0x01`): tag `10` + green diff, then `dr-dg`/`db-dg`
-- `QOI_OP_RGB` — a brand new pixel `R=100, G=0, B=55` (alpha unchanged) → encoded as the 4 bytes `0b11111110 0b01100100 0b00000000 0b00110111` (`0xFE 0x64 0x00 0x37`): tag byte, then R, G, B
-- `QOI_OP_RGBA` — a brand new pixel `R=100, G=0, B=55, A=73` → encoded as the 5 bytes `0b11111111 0b01100100 0b00000000 0b00110111 0b01001001` (`0xFF 0x64 0x00 0x37 0x49`): tag byte, then R, G, B, A
+- `QOI_OP_RUN`: the previous pixel repeats 41 more times in a row → encoded as the single byte `0b11101000` (`0xE8`): tag `11`, count `101000`
+- `QOI_OP_INDEX`: the current pixel matches slot 43 of the hash table → encoded as the single byte `0b00101011` (`0x2B`): tag `00`, index `101011`
+- `QOI_OP_DIFF`: R/G/B changed by `(-2, -1, 0)` compared to the previous pixel → encoded as the single byte `0b01000110` (`0x46`): tag `01`, then `dr dg db`
+- `QOI_OP_LUMA`: R/G/B changed by `(+19, +27, +20)` compared to the previous pixel → encoded as the 2 bytes `0b10111011 0b00000001` (`0xBB 0x01`): tag `10` + green diff, then `dr-dg`/`db-dg`
+- `QOI_OP_RGB`: a brand new pixel `R=100, G=0, B=55` (alpha unchanged) → encoded as the 4 bytes `0b11111110 0b01100100 0b00000000 0b00110111` (`0xFE 0x64 0x00 0x37`): tag byte, then R, G, B
+- `QOI_OP_RGBA`: a brand new pixel `R=100, G=0, B=55, A=73` → encoded as the 5 bytes `0b11111111 0b01100100 0b00000000 0b00110111 0b01001001` (`0xFF 0x64 0x00 0x37 0x49`): tag byte, then R, G, B, A
 
 ### The hash table trick
 
@@ -71,7 +71,7 @@ While walking the image, the encoder keeps the last 64 distinct pixels it has se
 
 ### Telling the blocks apart
 
-The first 2 bits of a byte identify which tag it is: `00` = index, `01` = diff, `10` = luma, `11` = run — except that `QOI_OP_RGB` and `QOI_OP_RGBA` also start with `11`, but are reserved as the two highest possible byte values (`0b11111110` and `0b11111111`). That's why a `QOI_OP_RUN` block can never repeat more than 62 pixels at once: capping it at 62 keeps its byte value below those two reserved values, so the decoder is never ambiguous about which tag it's reading.
+The first 2 bits of a byte identify which tag it is: `00` = index, `01` = diff, `10` = luma, `11` = run, except that `QOI_OP_RGB` and `QOI_OP_RGBA` also start with `11`, but are reserved as the two highest possible byte values (`0b11111110` and `0b11111111`). That's why a `QOI_OP_RUN` block can never repeat more than 62 pixels at once: capping it at 62 keeps its byte value below those two reserved values, so the decoder is never ambiguous about which tag it's reading.
 
 ### From pixels to file, and back
 
@@ -130,56 +130,56 @@ Real numbers on the sample images in `references/`:
 | `beach` | 3,782,043 bytes | 3,055,136 bytes | 19% smaller |
 | `dice` | 279,814 bytes | 360,208 bytes | 29% **bigger** |
 
-QOI is not a strict improvement over PNG: PNG's compression (DEFLATE) is more sophisticated and can win on file size, especially on smaller or more detailed images. QOI's real advantage is speed — it's designed to encode and decode orders of magnitude faster than PNG, sometimes at the cost of a worse compression ratio.
+QOI is not a strict improvement over PNG: PNG's compression (DEFLATE) is more sophisticated and can win on file size, especially on smaller or more detailed images. QOI's real advantage is speed: it's designed to encode and decode orders of magnitude faster than PNG, sometimes at the cost of a worse compression ratio.
 
 <p align="center"><img src="references/beach.png" width="450" alt="beach.png sample image"></p>
 
-**Why it gains bytes:** the sky, sand and water are large areas of near-uniform or smoothly-varying color. Consecutive pixels are almost always identical or very close to their neighbor, which is exactly what `QOI_OP_RUN` (exact repeats) and `QOI_OP_DIFF`/`QOI_OP_LUMA` (small gradual changes) are built for — most of the image compresses down to 1-2 bytes per pixel instead of 4.
+**Why it gains bytes:** the sky, sand and water are large areas of near-uniform or smoothly-varying color. Consecutive pixels are almost always identical or very close to their neighbor, which is exactly what `QOI_OP_RUN` (exact repeats) and `QOI_OP_DIFF`/`QOI_OP_LUMA` (small gradual changes) are built for: most of the image compresses down to 1-2 bytes per pixel instead of 4.
 
 <p align="center"><img src="references/dice.png" width="300" alt="dice.png sample image"></p>
 
-**Why it loses bytes:** the translucent, glossy dice create a lot of fine detail — highlights, soft shadows, and semi-transparent edges where the alpha channel itself keeps changing from one pixel to the next. All of QOI's cheap encodings assume the alpha channel stays the same as the previous pixel, so every one of those transitions forces a fallback to the full 5-byte `QOI_OP_RGBA` block instead. PNG's more elaborate compression copes better with that kind of detail.
+**Why it loses bytes:** the translucent, glossy dice create a lot of fine detail: highlights, soft shadows, and semi-transparent edges where the alpha channel itself keeps changing from one pixel to the next. All of QOI's cheap encodings assume the alpha channel stays the same as the previous pixel, so every one of those transitions forces a fallback to the full 5-byte `QOI_OP_RGBA` block instead. PNG's more elaborate compression copes better with that kind of detail.
 
 ## Implementation
 
 The course provided a skeleton (method signatures, plus utility code out of scope for the course); the assignment was to implement the body of these methods across 3 files.
 
-### `src/qoi/ArrayUtils.java` — byte array utilities
+### `src/qoi/ArrayUtils.java`: byte array utilities
 
-- `equals(byte[], byte[])` / `equals(byte[][], byte[][])` — deep array comparison (handling `null` cases)
-- `wrap(byte)` — wraps a single byte into an array
-- `toInt(byte[])` / `fromInt(int)` — converts between an integer and a 4-byte big-endian array
-- `toIntRGBA(byte[])` / `fromIntRGBA(int)` — custom variant to manipulate a pixel directly in `[R, G, B, A]` format
-- `concat(byte...)` / `concat(byte[]...)` — concatenates bytes, or arrays of bytes, together
-- `extract(byte[], start, length)` — extracts a sub-array from an array
-- `partition(byte[], sizes...)` — splits an array into several sub-arrays of given sizes
-- `imageToChannels(int[][])` — decomposes an image (ARGB pixels) into a linearized array of `[R, G, B, A]` channels
-- `channelsToImage(byte[][], height, width)` — reverse operation: rebuilds the 2D image from the channels
+- `equals(byte[], byte[])` / `equals(byte[][], byte[][])`: deep array comparison (handling `null` cases)
+- `wrap(byte)`: wraps a single byte into an array
+- `toInt(byte[])` / `fromInt(int)`: converts between an integer and a 4-byte big-endian array
+- `toIntRGBA(byte[])` / `fromIntRGBA(int)`: custom variant to manipulate a pixel directly in `[R, G, B, A]` format
+- `concat(byte...)` / `concat(byte[]...)`: concatenates bytes, or arrays of bytes, together
+- `extract(byte[], start, length)`: extracts a sub-array from an array
+- `partition(byte[], sizes...)`: splits an array into several sub-arrays of given sizes
+- `imageToChannels(int[][])`: decomposes an image (ARGB pixels) into a linearized array of `[R, G, B, A]` channels
+- `channelsToImage(byte[][], height, width)`: reverse operation, rebuilds the 2D image from the channels
 
-### `src/qoi/QOIEncoder.java` — QOI encoder
+### `src/qoi/QOIEncoder.java`: QOI encoder
 
-- `qoiHeader(Image)` — builds the file header (magic number, dimensions, channels, color space)
-- `qoiOpRGB(byte[])` / `qoiOpRGBA(byte[])` — encodes a full pixel (with or without the alpha channel)
-- `qoiOpIndex(byte)` — encodes a reference to a pixel already seen (hash table)
-- `qoiOpDiff(byte[])` — encodes a small difference between two consecutive pixels
-- `qoiOpLuma(byte[])` — encodes a larger difference, based on the variation of the green channel
-- `qoiOpRun(byte)` — encodes a run of identical, repeated pixels
-- `encodeData(byte[][])` — main algorithm: walks the image pixel by pixel and picks the best encoding at each step
-- `qoiFile(Image)` — assembles header + encoded data + end-of-file signature
+- `qoiHeader(Image)`: builds the file header (magic number, dimensions, channels, color space)
+- `qoiOpRGB(byte[])` / `qoiOpRGBA(byte[])`: encodes a full pixel (with or without the alpha channel)
+- `qoiOpIndex(byte)`: encodes a reference to a pixel already seen (hash table)
+- `qoiOpDiff(byte[])`: encodes a small difference between two consecutive pixels
+- `qoiOpLuma(byte[])`: encodes a larger difference, based on the variation of the green channel
+- `qoiOpRun(byte)`: encodes a run of identical, repeated pixels
+- `encodeData(byte[][])`: main algorithm, walks the image pixel by pixel and picks the best encoding at each step
+- `qoiFile(Image)`: assembles header + encoded data + end-of-file signature
 
-### `src/qoi/QOIDecoder.java` — QOI decoder
+### `src/qoi/QOIDecoder.java`: QOI decoder
 
-- `decodeHeader(byte[])` — extracts width/height/channels/color space from the header
-- `decodeQoiOpRGB(...)` / `decodeQoiOpRGBA(...)` — decodes a full pixel
-- `decodeQoiOpDiff(...)` / `decodeQoiOpLuma(...)` — rebuilds a pixel from an encoded difference
-- `decodeQoiOpRun(...)` — repeats a pixel N times in the output buffer
-- `decodeData(byte[], width, height)` — main decompression algorithm, rebuilds every pixel of the image
-- `decodeQoiFile(byte[])` — rebuilds a full Java image from the binary content of a QOI file
+- `decodeHeader(byte[])`: extracts width/height/channels/color space from the header
+- `decodeQoiOpRGB(...)` / `decodeQoiOpRGBA(...)`: decodes a full pixel
+- `decodeQoiOpDiff(...)` / `decodeQoiOpLuma(...)`: rebuilds a pixel from an encoded difference
+- `decodeQoiOpRun(...)`: repeats a pixel N times in the output buffer
+- `decodeData(byte[], width, height)`: main decompression algorithm, rebuilds every pixel of the image
+- `decodeQoiFile(byte[])`: rebuilds a full Java image from the binary content of a QOI file
 
 ### The rest
 
-- `src/qoi/Main.java` — command-line entry point (`./convert <file>`), which simply calls the methods above.
-- `src/qoi/Helper.java`, `src/qoi/QOISpecification.java` — code provided by the course (file/image I/O, QOI format constants, hash function): not written by me, but required to build and run the project.
+- `src/qoi/Main.java`: command-line entry point (`./convert <file>`), which simply calls the methods above.
+- `src/qoi/Helper.java`, `src/qoi/QOISpecification.java`: code provided by the course (file/image I/O, QOI format constants, hash function): not written by me, but required to build and run the project.
 
 ## Credits
 
